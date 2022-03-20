@@ -695,6 +695,9 @@ options:
             - List of commands to run at first user logon.
             - Specific to Windows customization.
     type: dict
+  vapp_ovf_environment_transport:
+    description:
+    - Set ovf 
   vapp_properties:
     description:
     - A list of vApp properties.
@@ -2092,13 +2095,16 @@ class PyVmomiHelper(PyVmomi):
         if not self.params['vapp_ip_allocation']:
             return
 
-        new_vmconfig_spec = vim.vApp.IPAssignmentInfo()
+        new_vmconfig_spec = vim.vApp.VmConfigSpec()
         orig_spec = vm_obj.config.vAppConfig if vm_obj.config.vAppConfig else new_vmconfig_spec
         vmconfig_spec = self.configspec.vAppConfig if self.configspec.vAppConfig else orig_spec
-        vmconfig_spec.IPAssignmentInfo.AllocationSchemes = [self.params['vapp_ip_allocation']['allocation_schemes']]
-        vmconfig_spec.IPAssignmentInfo.Protocols = [self.params['vapp_ip_allocation']['protocols']]
-        vmconfig_spec.IPAssignmentInfo.IpAllocationPolicy = self.params['vapp_ip_allocation']['allocation_policy']
-        if vmconfig_spec.ovfEnvironmentTransport:
+        vapp_ip_assign_spec = vim.vApp.IPAssignmentInfo()
+        vapp_ip_assign_spec.supportedAllocationScheme = [self.params['vapp_ip_allocation']['allocation_schemes']]
+        vapp_ip_assign_spec.ipAllocationPolicy = self.params['vapp_ip_allocation']['allocation_policy']
+        vapp_ip_assign_spec.ipProtocol = self.params['vapp_ip_allocation']['protocols']
+        vmconfig_spec.ipAssignment.append(vapp_ip_assign_spec)
+
+        if vmconfig_spec.ipAssignment:
             self.configspec.vAppConfig = vmconfig_spec
             self.change_detected = True
 
