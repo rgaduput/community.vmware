@@ -3121,9 +3121,9 @@ class PyVmomiHelper(PyVmomi):
         self.customize_customvalues(vm_obj=self.current_vm_obj)
         self.configure_resource_alloc_info(vm_obj=self.current_vm_obj)
         self.configure_vapp_properties(vm_obj=self.current_vm_obj)
-        self.configure_vapp_ip_allocation(vm_obj=vm_obj)
-        self.configure_vapp_product(vm_obj=vm_obj)
-        self.configure_vapp_ovf_environment_transport(vm_obj=vm_obj)
+        self.configure_vapp_ip_allocation(vm_obj=self.current_vm_obj)
+        self.configure_vapp_product(vm_obj=self.current_vm_obj)
+        self.configure_vapp_ovf_environment_transport(vm_obj=self.current_vm_obj)
 
         if self.params['annotation'] and self.current_vm_obj.config.annotation != self.params['annotation']:
             self.configspec.annotation = str(self.params['annotation'])
@@ -3421,6 +3421,16 @@ def main():
         wait_for_customization=dict(type='bool', default=False),
         wait_for_customization_timeout=dict(type='int', default=3600),
         vapp_properties=dict(type='list', default=[], elements='dict'),
+        vapp_ovf_environment_transport=dict(type='str', default=None),
+        vapp_product=dict(type='list', default=[], elements='dict'),
+        vapp_ip_allocation=dict(
+            type='dict',
+            default={},
+            options=dict(
+                allocation_schemes=dict(type='list', elements='str'),
+                protocols=dict(type='list', elements='str'),
+                allocation_policy=dict(type='str')
+            )),
         datastore=dict(type='str'),
         convert=dict(type='str', choices=['thin', 'thick', 'eagerzeroedthick']),
         delete_from_inventory=dict(type='bool', default=False),
