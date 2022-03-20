@@ -2052,9 +2052,8 @@ class PyVmomiHelper(PyVmomi):
             return
 
         new_vmconfig_spec = vim.vApp.VmConfigSpec()
-        orig_spec = vm_obj.config.vAppConfig if vm_obj.config.vAppConfig else new_vmconfig_spec
-        vmconfig_spec = self.configspec.vAppConfig if self.configspec.vAppConfig else orig_spec
-        vmconfig_spec.ovfEnvironmentTransport = [self.params['vapp_ovf_environment_transport']]
+        vmconfig_spec = self.configspec.vAppConfig if self.configspec.vAppConfig else new_vmconfig_spec
+        vmconfig_spec.ovfEnvironmentTransport = self.params['vapp_ovf_environment_transport']
         if vmconfig_spec.ovfEnvironmentTransport:
             self.configspec.vAppConfig = vmconfig_spec
             self.change_detected = True
@@ -3422,7 +3421,7 @@ def main():
         wait_for_customization=dict(type='bool', default=False),
         wait_for_customization_timeout=dict(type='int', default=3600),
         vapp_properties=dict(type='list', default=[], elements='dict'),
-        vapp_ovf_environment_transport=dict(type='str', default=None),
+        vapp_ovf_environment_transport=dict(type='list', default=[], elements='str'),
         vapp_product=dict(type='list', default=[], elements='dict'),
         vapp_ip_allocation=dict(
             type='dict',
