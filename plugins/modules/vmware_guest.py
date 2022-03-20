@@ -2092,21 +2092,22 @@ class PyVmomiHelper(PyVmomi):
             self.change_detected = True
 
     def configure_vapp_ip_allocation(self, vm_obj):
-        if not self.params['vapp_ip_allocation']:
-            return
+        vapp_ip_allocation = self.params.get("vapp_ip_allocation")
+        # if not self.params['vapp_ip_allocation']:
+        #     return
+        if vapp_ip_allocation:
+            new_vmconfig_spec = vim.vApp.VmConfigSpec()
+            orig_spec = vm_obj.config.vAppConfig if vm_obj.config.vAppConfig else new_vmconfig_spec
+            vmconfig_spec = self.configspec.vAppConfig if self.configspec.vAppConfig else orig_spec
+            vapp_ip_assign_spec = vim.vApp.IPAssignmentInfo()
+            vapp_ip_assign_spec.supportedAllocationScheme = [self.params['vapp_ip_allocation']['allocation_schemes']]
+            vapp_ip_assign_spec.ipAllocationPolicy = self.params['vapp_ip_allocation']['allocation_policy']
+            vapp_ip_assign_spec.ipProtocol = self.params['vapp_ip_allocation']['protocols']
+            vmconfig_spec.ipAssignment.append(vapp_ip_assign_spec)
 
-        new_vmconfig_spec = vim.vApp.VmConfigSpec()
-        orig_spec = vm_obj.config.vAppConfig if vm_obj.config.vAppConfig else new_vmconfig_spec
-        vmconfig_spec = self.configspec.vAppConfig if self.configspec.vAppConfig else orig_spec
-        vapp_ip_assign_spec = vim.vApp.IPAssignmentInfo()
-        vapp_ip_assign_spec.supportedAllocationScheme = [self.params['vapp_ip_allocation']['allocation_schemes']]
-        vapp_ip_assign_spec.ipAllocationPolicy = self.params['vapp_ip_allocation']['allocation_policy']
-        vapp_ip_assign_spec.ipProtocol = self.params['vapp_ip_allocation']['protocols']
-        vmconfig_spec.ipAssignment.append(vapp_ip_assign_spec)
-
-        if vmconfig_spec.ipAssignment:
-            self.configspec.vAppConfig = vmconfig_spec
-            self.change_detected = True
+            if vmconfig_spec.ipAssignment:
+                self.configspec.vAppConfig = vmconfig_spec
+                self.change_detected = True
 
     def customize_advanced_settings(self, vm_obj, config_spec):
         if not self.params['advanced_settings']:
