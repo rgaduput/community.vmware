@@ -2044,6 +2044,64 @@ class PyVmomiHelper(PyVmomi):
             self.configspec.vAppConfig = new_vmconfig_spec
             self.change_detected = True
 
+    def configure_vapp_ovf_environment_transport(self, vm_obj):
+        if not self.params['vapp_ovf_environment_transport']:
+            return
+
+        new_vmconfig_spec = vim.vApp.VmConfigSpec()
+        orig_spec = vm_obj.config.vAppConfig if vm_obj.config.vAppConfig else new_vmconfig_spec
+        vmconfig_spec = self.configspec.vAppConfig if self.configspec.vAppConfig else orig_spec
+        vmconfig_spec.ovfEnvironmentTransport = [self.params['vapp_ovf_environment_transport']]
+        if vmconfig_spec.ovfEnvironmentTransport:
+            self.configspec.vAppConfig = vmconfig_spec
+            self.change_detected = True
+
+    def configure_vapp_product(self, vm_obj):
+        if not self.params['vapp_product']:
+            return
+
+        new_property_spec = self.params['vapp_product']
+        new_vmconfig_spec = vim.vApp.VmConfigSpec()
+        orig_spec = vm_obj.config.vAppConfig if vm_obj.config.vAppConfig else new_vmconfig_spec
+        vmconfig_spec = self.configspec.vAppConfig if self.configspec.vAppConfig else orig_spec
+        vapp_product_current = dict((x.name, x) for x in vmconfig_spec.product)
+        vapp_product_spec = vim.vApp.ProductSpec()
+        if new_property_spec.get('name') in vapp_product_current:
+            vapp_product_spec.operation = 'edit'
+        else:
+            vapp_product_spec.operation = 'add'
+        product_info = vim.vApp.ProductInfo()
+        product_info.classId = new_property_spec.get('classId')
+        product_info.instanceId = new_property_spec.get('instanceId')
+        product_info.name = new_property_spec.get('name')
+        product_info.vendor = new_property_spec.get('vendor')
+        product_info.version = new_property_spec.get('version')
+        product_info.fullVersion = new_property_spec.get('fullVersion')
+        product_info.vendorUrl = new_property_spec.get('vendorUrl')
+        product_info.productUrl = new_property_spec.get('productUrl')
+        product_info.appUrl = new_property_spec.get('appUrl')
+        vapp_product_spec.info = product_info
+        vapp_product_spec.info.key = 0
+        vmconfig_spec.product.append(vapp_product_spec)
+
+        if vmconfig_spec.product:
+            self.configspec.vAppConfig = vmconfig_spec
+            self.change_detected = True
+
+    def configure_vapp_ip_allocation(self, vm_obj):
+        if not self.params['vapp_ip_allocation']:
+            return
+
+        new_vmconfig_spec = vim.vApp.IPAssignmentInfo()
+        orig_spec = vm_obj.config.vAppConfig if vm_obj.config.vAppConfig else new_vmconfig_spec
+        vmconfig_spec = self.configspec.vAppConfig if self.configspec.vAppConfig else orig_spec
+        vmconfig_spec.IPAssignmentInfo.AllocationSchemes = [self.params['vapp_ip_allocation']['allocation_schemes']]
+        vmconfig_spec.IPAssignmentInfo.Protocols = [self.params['vapp_ip_allocation']['protocols']]
+        vmconfig_spec.IPAssignmentInfo.IpAllocationPolicy = self.params['vapp_ip_allocation']['allocation_policy']
+        if vmconfig_spec.ovfEnvironmentTransport:
+            self.configspec.vAppConfig = vmconfig_spec
+            self.change_detected = True
+
     def customize_advanced_settings(self, vm_obj, config_spec):
         if not self.params['advanced_settings']:
             return
@@ -2867,6 +2925,9 @@ class PyVmomiHelper(PyVmomi):
         self.configure_hardware_params(vm_obj=vm_obj)
         self.configure_resource_alloc_info(vm_obj=vm_obj)
         self.configure_vapp_properties(vm_obj=vm_obj)
+        self.configure_vapp_ip_allocation(vm_obj=vm_obj)
+        self.configure_vapp_product(vm_obj=vm_obj)
+        self.configure_vapp_ovf_environment_transport(vm_obj=vm_obj)
         self.configure_disks(vm_obj=vm_obj)
         self.configure_network(vm_obj=vm_obj)
         self.configure_cdrom(vm_obj=vm_obj)
@@ -3054,6 +3115,9 @@ class PyVmomiHelper(PyVmomi):
         self.customize_customvalues(vm_obj=self.current_vm_obj)
         self.configure_resource_alloc_info(vm_obj=self.current_vm_obj)
         self.configure_vapp_properties(vm_obj=self.current_vm_obj)
+        self.configure_vapp_ip_allocation(vm_obj=vm_obj)
+        self.configure_vapp_product(vm_obj=vm_obj)
+        self.configure_vapp_ovf_environment_transport(vm_obj=vm_obj)
 
         if self.params['annotation'] and self.current_vm_obj.config.annotation != self.params['annotation']:
             self.configspec.annotation = str(self.params['annotation'])
