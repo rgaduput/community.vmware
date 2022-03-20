@@ -2932,8 +2932,8 @@ class PyVmomiHelper(PyVmomi):
         self.configure_hardware_params(vm_obj=vm_obj)
         self.configure_resource_alloc_info(vm_obj=vm_obj)
         self.configure_vapp_properties(vm_obj=vm_obj)
-        self.configure_vapp_ip_allocation(vm_obj=vm_obj)
-        self.configure_vapp_product(vm_obj=vm_obj)
+        #self.configure_vapp_ip_allocation(vm_obj=vm_obj)
+        #self.configure_vapp_product(vm_obj=vm_obj)
         self.configure_vapp_ovf_environment_transport(vm_obj=vm_obj)
         self.configure_disks(vm_obj=vm_obj)
         self.configure_network(vm_obj=vm_obj)
@@ -3122,8 +3122,8 @@ class PyVmomiHelper(PyVmomi):
         self.customize_customvalues(vm_obj=self.current_vm_obj)
         self.configure_resource_alloc_info(vm_obj=self.current_vm_obj)
         self.configure_vapp_properties(vm_obj=self.current_vm_obj)
-        self.configure_vapp_ip_allocation(vm_obj=self.current_vm_obj)
-        self.configure_vapp_product(vm_obj=self.current_vm_obj)
+        #self.configure_vapp_ip_allocation(vm_obj=self.current_vm_obj)
+        #self.configure_vapp_product(vm_obj=self.current_vm_obj)
         self.configure_vapp_ovf_environment_transport(vm_obj=self.current_vm_obj)
 
         if self.params['annotation'] and self.current_vm_obj.config.annotation != self.params['annotation']:
