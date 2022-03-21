@@ -2091,18 +2091,15 @@ class PyVmomiHelper(PyVmomi):
             self.change_detected = True
 
     def configure_vapp_ip_allocation(self, vm_obj):
-        vapp_ip_allocation = self.params.get("vapp_ip_allocation")
-        # if not self.params['vapp_ip_allocation']:
-        #     return
-        if vapp_ip_allocation:
+
+        if self.params['vapp_ip_allocation']['allocation_schemes']:
             new_vmconfig_spec = vim.vApp.VmConfigSpec()
-            orig_spec = vm_obj.config.vAppConfig if vm_obj.config.vAppConfig else new_vmconfig_spec
-            vmconfig_spec = self.configspec.vAppConfig if self.configspec.vAppConfig else orig_spec
+            vmconfig_spec = self.configspec.vAppConfig if self.configspec.vAppConfig else new_vmconfig_spec
             vapp_ip_assign_spec = vim.vApp.IPAssignmentInfo()
-            vapp_ip_assign_spec.supportedAllocationScheme = [self.params['vapp_ip_allocation']['allocation_schemes']]
+            vapp_ip_assign_spec.supportedAllocationScheme = self.params['vapp_ip_allocation']['allocation_schemes']
             vapp_ip_assign_spec.ipAllocationPolicy = self.params['vapp_ip_allocation']['allocation_policy']
-            vapp_ip_assign_spec.ipProtocol = self.params['vapp_ip_allocation']['protocols']
-            vmconfig_spec.ipAssignment.append(vapp_ip_assign_spec)
+            vapp_ip_assign_spec.ipProtocol = self.params['vapp_ip_allocation']['ip_protocol']
+            vmconfig_spec.ipAssignment = vapp_ip_assign_spec
 
             if vmconfig_spec.ipAssignment:
                 self.configspec.vAppConfig = vmconfig_spec
@@ -2931,8 +2928,8 @@ class PyVmomiHelper(PyVmomi):
         self.configure_hardware_params(vm_obj=vm_obj)
         self.configure_resource_alloc_info(vm_obj=vm_obj)
         self.configure_vapp_properties(vm_obj=vm_obj)
-        #self.configure_vapp_ip_allocation(vm_obj=vm_obj)
-        #self.configure_vapp_product(vm_obj=vm_obj)
+        self.configure_vapp_ip_allocation(vm_obj=vm_obj)
+        self.configure_vapp_product(vm_obj=vm_obj)
         self.configure_vapp_ovf_environment_transport(vm_obj=vm_obj)
         self.configure_disks(vm_obj=vm_obj)
         self.configure_network(vm_obj=vm_obj)
@@ -3121,8 +3118,8 @@ class PyVmomiHelper(PyVmomi):
         self.customize_customvalues(vm_obj=self.current_vm_obj)
         self.configure_resource_alloc_info(vm_obj=self.current_vm_obj)
         self.configure_vapp_properties(vm_obj=self.current_vm_obj)
-        #self.configure_vapp_ip_allocation(vm_obj=self.current_vm_obj)
-        #self.configure_vapp_product(vm_obj=self.current_vm_obj)
+        self.configure_vapp_ip_allocation(vm_obj=self.current_vm_obj)
+        self.configure_vapp_product(vm_obj=self.current_vm_obj)
         self.configure_vapp_ovf_environment_transport(vm_obj=self.current_vm_obj)
 
         if self.params['annotation'] and self.current_vm_obj.config.annotation != self.params['annotation']:
@@ -3427,10 +3424,11 @@ def main():
             type='dict',
             default={},
             options=dict(
-                allocation_schemes=dict(type='list', elements='str'),
-                protocols=dict(type='list', elements='str'),
-                allocation_policy=dict(type='str')
-            )),
+                allocation_schemes=dict(type='list', default=[], elements='str'),
+                ip_protocol=dict(type='str', choices=['IPv4', 'IPv6', 'both']),
+                allocation_policy=dict(type='str'),
+            )
+        ),
         datastore=dict(type='str'),
         convert=dict(type='str', choices=['thin', 'thick', 'eagerzeroedthick']),
         delete_from_inventory=dict(type='bool', default=False),
